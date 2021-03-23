@@ -17,7 +17,7 @@ beta = .95
 gamma = .5
 alpha = .83
 t = 30
-vk = [10] * t
+vk = [0] * t
 # S, E, I, U, H, Q, R, D
 initValues = [.1]*8
 ksum = .1
@@ -34,9 +34,7 @@ rr = .03
 # recovery rate for hospitalized
 rh = .02
 
-def tPlusOne(k, t):
-    # set initValues to the values stored in data for a certain risk class
-    initValues = data[k]
+def tPlusOne(k, t, initValues):
 
     # newvalues will be a list which in order produces : S, R, I, UD, UR, HD, HR,
     # QD, QR, D, M (not R though - this may need to be added in perhaps by
@@ -45,11 +43,11 @@ def tPlusOne(k, t):
 
     # Susceptible people, equation 16
     Skt = initValues[0]
-    newValues[0] = Skt - beta*vk[t] - ((alpha*gamma)*(Skt - beta*vk[t]))
+    newValues[0] = Skt - beta*vk[t] - ((alpha*gamma)*(Skt - beta*vk[t])*ksum)
 
     # Exposed people, equation 17
     Ekt = initValues[1]
-    newValues[1] = Ekt + ((alpha*gamma*(Ekt - beta*vk[t]))*ksum - (ri*Ekt))
+    newValues[1] = Ekt + ((alpha*gamma*(Skt - beta*vk[t]))*ksum - (ri*Ekt))
 
     # Infected people, equation 18
     Ikt = initValues[2]
@@ -97,9 +95,9 @@ def populateUntilT(t,k):
     listOfList = [[] for i in range(t)]
     while i < t:
         if i == 0:
-            listOfList[i] = tPlusOne(k, i)
+            listOfList[i] = tPlusOne(k, i, data[k])
         else:
-            listOfList[i] = tPlusOne(k, i)
+            listOfList[i] = tPlusOne(k, i, listOfList[i-1])
         i += 1
     return listOfList
 
@@ -107,11 +105,12 @@ def buildDF(t, k):
     # set the column names
     # S, R, I, UD, UR, HD, HR, QD, QR, D, M
     columns = ['time since day 0', 'susceptible', 'recovered', 'infected',
-               'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'M']
+               'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'immune state']
     df = pd.DataFrame(columns = columns)
 
     # add to dataframe risk class by risk class
     computed = populateUntilT(t, k)
+    #df.loc[0] = [0, data[k][], ]
     for i in range(len(computed)):
         row = computed[i]
         df.loc[i] = [i+1, row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]]
