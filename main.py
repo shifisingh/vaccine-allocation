@@ -1,3 +1,16 @@
+import pandas as pd
+
+# data for each risk class
+# S, E, I, U, H, Q, R, D
+class1 = [.840, .840, .048, .0402, .000009233, .00803, .063, .000007254]
+class2 = []
+class3 = []
+class4 = []
+class5 = []
+# 2d array that stores all risk class' data
+data = [class1, class2, class3, class4, class5]
+
+riskClasses = ['0-19', '20-29', '30-49', '50-69', '70+']
 
 # for a risk class k, this may need to become a class
 beta = .95
@@ -76,20 +89,33 @@ def tPlusOne(initValues, t):
 
     return newValues
 
-def populateUntilT(t):
+def populateUntilT(t,k):
     i = 0
     listOfList = [[] for i in range(t)]
     while i < t:
         if i == 0:
-            listOfList[i] = tPlusOne(initValues, i)
+            listOfList[i] = tPlusOne(k, i)
         else:
-            listOfList[i] = tPlusOne(listOfList[i - 1], i)
+            listOfList[i] = tPlusOne(k, i)
         i += 1
     return listOfList
 
-print(populateUntilT(30))
+def buildDF(t, k):
+    # set the column names
+    # S, R, I, UD, UR, HD, HR, QD, QR, D, M
+    columns = ['time since day 0', 'susceptible', 'recovered', 'infected',
+               'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'M']
+    df = pd.DataFrame(columns = columns)
 
+    # add to dataframe risk class by risk class
+    data = populateUntilT(t, k)
+    for i in range(len(data)):
+        row = data[i]
+        df.loc[i] = [i, row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9]]
+    return df
 
+# build for 10 days for risk class 1
+buildDF(10, 1)
 
 
 
