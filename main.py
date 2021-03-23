@@ -3,7 +3,7 @@ import pandas as pd
 # data for each risk class
 # S, E, I, U, H, Q, R, D
 class1 = [.840, .840, .048, .0402, .000009233, .00803, .063, .000007254]
-class2 = []
+class2 = [.701, .701, .09, .07522, .00001451, .01503, .000029017, .11809]
 class3 = []
 class4 = []
 class5 = []
@@ -34,7 +34,10 @@ rr = .03
 # recovery rate for hospitalized
 rh = .02
 
-def tPlusOne(initValues, t):
+def tPlusOne(k, t):
+    # set initValues to the values stored in data for a certain risk class
+    initValues = data[k]
+
     # newvalues will be a list which in order produces : S, R, I, UD, UR, HD, HR,
     # QD, QR, D, M (not R though - this may need to be added in perhaps by
     # summing UR, HR, and QR)
@@ -71,11 +74,11 @@ def tPlusOne(initValues, t):
     newValues[6] = HRkt + (rhr*Ikt - rr*HRkt)
 
     # Quarantined people that die, equation 21
-    QDkt = initValues[5] * .97
+    QDkt = initValues[5] * (1 - rr)
     rqd = QDkt / initValues[5]
     newValues[7] = QDkt + (rqd*Ikt - rDeath*QDkt)
     # Quarantined people that recover
-    QRkt = initValues[5] * .03
+    QRkt = initValues[5] * rr
     rqr = QRkt / initValues[5]
     newValues[8] = QRkt + (rqr*Ikt - rr*QRkt)
 
@@ -108,14 +111,14 @@ def buildDF(t, k):
     df = pd.DataFrame(columns = columns)
 
     # add to dataframe risk class by risk class
-    data = populateUntilT(t, k)
+    computed = populateUntilT(t, k)
     for i in range(len(data)):
-        row = data[i]
-        df.loc[i] = [i, row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9]]
+        row = computed[i]
+        df.loc[i] = [i, row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]]
     return df
 
 # build for 10 days for risk class 1
-buildDF(10, 1)
+print(buildDF(10, 1))
 
 
 
