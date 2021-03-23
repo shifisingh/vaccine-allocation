@@ -112,9 +112,9 @@ def buildDF(t, k):
 
     # add to dataframe risk class by risk class
     computed = populateUntilT(t, k)
-    for i in range(len(data)):
+    for i in range(len(computed)):
         row = computed[i]
-        df.loc[i] = [i, row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]]
+        df.loc[i] = [i+1, row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]]
     return df
 
 # build for 10 days for risk class 1
