@@ -20,7 +20,7 @@ beta = .95
 gamma = .5
 alpha = .83
 # 2d array of number of vaccinations, state[k][t], where k represents the risk class and t represents the time
-v = [0] * 1
+v = [[]]
 # probability of getting into contact with an infected person
 ksum = .1
 # progression rate
@@ -29,7 +29,6 @@ ri = .06
 rDeath = 0.028
 # detection rate, r^d
 rDetected = .15
-
 # recovery rate for non hospitalized
 rr = .03
 # recovery rate for hospitalized
@@ -50,7 +49,7 @@ d = [[]]
 m = [[]]
 
 def tPlusOne(k, t):
-    global s, e, i, ud, ur, hd, hr, qd, qr, d, m
+    global s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
 
     # Susceptible people, equation 16
     Skt = s[k][t-1]
@@ -100,26 +99,31 @@ def tPlusOne(k, t):
     m[k][t] = Mkt + beta*v[k][t]
 
 def populateUntilT(T):
-    global s, e, i, ud, ur, hd, hr, qd, qr, d, m
+    global data, s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
+
+    # populate the preliminary data
+    size = [[0 for i in range(T + 1)] for i in range(5)]
+    s = e = i = ud = ur = hd = hr = qd = qr = d = m = size
+
+    # load v
+    v = [[0 for i in range(T + 1)] for i in range(5)]
 
     for k in range(0, 5):
-        for t in range(0, T):
+        for t in range(0, T+1):
             if t == 0:
-                # populate the preliminary data
-                size = [[k for i in range(T+1)] for i in range(5)]
-                s = e = i = ud = ur = hd = hr = qd = qr = d = m = size
                 s[k][0] = data[k][0]
+                print(s)
                 e[k][0] = data[k][1]
                 i[k][0] = data[k][2]
-                ud[k][0] = 0
-                ur[k][0] = 0
-                hd[k][0] = 0
-                hr[k][0] = 0
-                qd[k][0] = 0
-                qr[k][0] = 0
+                ud[k][0] = 1
+                ur[k][0] = 1
+                hd[k][0] = 1
+                hr[k][0] = 1
+                qd[k][0] = 1
+                qr[k][0] = 1
                 #r[k][0] = data[k][6]
                 d[k][0] = data[k][7]
-                m[k][0] = 0
+                m[k][0] = 1
             else:
                 tPlusOne(k, t)
 
