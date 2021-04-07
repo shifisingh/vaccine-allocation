@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 
 # for a risk class k, this may need to become a class
 beta = .95
@@ -63,10 +64,84 @@ qr = [[]]
 d = [[]]
 m = [[]]
 
-def vaxStrategy(t):
-    return [[0 for i in range(t + 1)] for i in range(5)]
-    # q - fill w/ zeros until certain point?
-    # q2 - diff vaccination strategies for diff risk classes
+def findDeathRates():
+    # for each class
+    # x = [[u0, h0, q0], [u1, h1, q1], [u2, h2, q2], [u3, h3, q3]]
+    # which will be t arrays size 3 because each of the values will represent its states
+    # y = death array
+
+    x1 = [[60970, 14, 12180]]
+    x2 = [[72585, 14, 14503]]
+    x3 = [[11780, 28, 22328]]
+    x4 = [[87830, 140, 17426]]
+    x5 = [[29760, 234, 5718]]
+    y1 = [[11]]
+    y2 = [[28]]
+    y3 = [[440]]
+    y4 = [[3066]]
+    y5 = [[7896]]
+
+    reg = LinearRegression()
+    reg.fit(x1, y1)
+
+    # array of the coefficients
+    # parse them out
+    return reg.coef_
+
+def findVaxRates(df):
+    # given a dataframe of vaccination data, figure out the rates for which people
+    # are getting vaccinated during each phase
+
+    # find the x & y
+    x = df.loc[:, ['risk_class_1', 'risk_class_2', 'risk_class_3', 'risk_class_4', 'risk_class_5']].values.reshape(-1, 1)
+    y = df.loc[:, 'total'].values
+
+    # do regression on the given x & y values
+    reg = LinearRegression()
+    reg.fit(x, y)
+
+    # returns an array holding the coefficient which is parsed
+    return reg.coef_
+
+def singleDoseVaxStrat(t):
+    # build the 2d array so v[k][t] is the total number of people vaccinated at time t in risk class k
+    # t arrays of size 5
+    v = [[0 for i in range(t + 1)] for i in range(5)]
+    p = [[0 for i in range(t + 1)] for i in range(5)]
+
+    # vaccination hesitancy set to 30%
+    hesitancy = .3
+
+    # import the csv as a dataframe
+    phase_1_df = pd.read_csv('phase_1.csv')
+
+    for time in t:
+        for k in ['risk_class_1', 'risk_class_2', 'risk_class_3', 'risk_class_4', 'risk_class_5']:
+            if time > 0 & time <= 42:
+                rate = findVaxRates(phase_1_df, k)
+                v[k][time] = (v[k][time-1] * (1-hesitancy)) * rate
+            # phase 2
+            if time >= 43 & time <= 62:
+                # rate = findVaxRates(df, k)
+                v[k][time] = (v[k][time - 1] * (1 - hesitancy)) * rate
+            # phase 3
+            if time >= 63 & time <= 76:
+                # rate = findVaxRates(df, k)
+                v[k][time] = (v[k][time - 1] * (1 - hesitancy)) * rate
+            # phase 4
+            if time >= 77:
+                # rate = findVaxRates(df, k)
+                v[k][time] = (v[k][time - 1] * (1 - hesitancy)) * rate
+    return v
+
+phase_1_df = pd.read_csv('phase_1.csv')
+# x = phase_1_df.loc[:, ('risk_class_1', 'risk_class_2', 'risk_class_3', 'risk_class_4', 'risk_class_5')].values
+x = [[1274292, 676765, 1278927, 1440307, 632134]]
+y = [35618]
+#y = phase_1_df.loc[:, 'total'].values[0]
+reg = LinearRegression()
+reg.fit(x, y)
+print(reg.coef_)
 
 def tPlusOne(k, t):
     global s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
@@ -75,7 +150,8 @@ def tPlusOne(k, t):
     ksum = i[0][t] + i[1][t] + i[2][t] + i[3][t] + i[4][t]
 
     # Vax strategy
-    v = vaxStrategy(t)
+    v = [[0 for i in range(t + 1)] for i in range(5)]
+    # add new equations to support our vax strat
 
     # Susceptible people, equation 16
     Skt = s[k][t-1]
@@ -96,7 +172,7 @@ def tPlusOne(k, t):
     # Undiagnosed people that recover
     URkt = ud[k][t-1] * rr
     rur = URkt / ud[k][t-1]
-    ud[k][t] = URkt + (rur*Ikt - rr*URkt)
+    ur[k][t] = URkt + (rur*Ikt - rr*URkt)
 
     # Hospitalized people that die, equation 20
     HDkt = hd[k][t-1] * (1 - rh)
