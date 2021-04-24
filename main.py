@@ -2,14 +2,15 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 
 # for a risk class k, this may need to become a class
-beta = .95
-gamma = .5
-alpha = .83
+beta = .95 # vaccine efficacy
+gamma = .5 # government intervention
+alpha = .83 # nominal infection rate
 # 2d array of number of vaccinations, vaccinated[k][t], where k represents the risk class and t represents the time
 v = [[]]
 # probability of getting into contact with an infected person (initialized to 0)
 ksum = 0
 # progression rate
+
 ri = .06
 # death rate, r^D
 rDeath = 0.028
@@ -19,36 +20,6 @@ rDetected = .15
 rr = .03
 # recovery rate for hospitalized
 rh = .02
-
-# initial data for each risk class
-# S, E, I, UD, UR, HD, HR, QD, QR, R, D
-class1 = [1274292 / 1516350, 1274292 / 1516350, 73164 / 1516350,
-          (60970/1516350) * (1 - rr), (60970/1516350) * (rr),
-          (14/1516350) * (1 - rh), (14/1516350) * (rh),
-          (12180/1516350) * (1 - rr), (12180/1516350) * (rr),
-          (11/1516350), (95719/1516350)]
-class2 = [676765/964950, 676765/964950, 87102/964950,
-          72585/964950 * (1 - rr), 72585/964950 * (rr),
-          14/964950 * (1 - rh), 14/964950 * (rh),
-          14503/964950 * (1 - rr), 14503/964950 * (rr),
-          28/964950, 113953/964950]
-class3 = [1278927/1723126, 1278927/1723126, 134136/1723126,
-          111780/1723126 * (1 - rr),  111780/1723126 * (rr),
-          28/1723126 * (1 - rh), 28/1723126 * (rh),
-          22328/1723126 * (1 - rr), 22328/1723126 * (rr),
-          440/1723126, 175487/1723126]
-class4 = [1440307/1792051, 1440307/1792051, 105396/1792051,
-          87830/1792051 * (1 - rr), 87830/1792051 * (rr),
-          140/1792051 * (1 - rh), 140/1792051 * (rh),
-          17426/1792051 * (1 - rr), 17426/1792051 * (rr),
-          3066/1792051, 137886/1792051]
-class5 = [632134/758175, 632134/758175, 35712/758175,
-          29760/758175 * (1 - rr), 29760/758175 * (rr),
-          234/758175 * (1 - rh), 234/758175 * (rh),
-          5718/758175 * (1 - rr), 5718/758175 * (1 - rr),
-          7896/758175, 46721/758175]
-# 2d array that stores all risk class' data
-data = [class1, class2, class3, class4, class5]
 
 # 2d array of states, state[k][t], where k represents the risk class and t represents the time
 s = [[]]
@@ -64,94 +35,119 @@ qr = [[]]
 d = [[]]
 m = [[]]
 
-def findDeathRates():
+def findDeathRates(k):
     # for each class
     # x = [[u0, h0, q0], [u1, h1, q1], [u2, h2, q2], [u3, h3, q3]]
     # which will be t arrays size 3 because each of the values will represent its states
     # y = death array
 
-    x1 = [[60970, 14, 12180]]
-    x2 = [[72585, 14, 14503]]
-    x3 = [[11780, 28, 22328]]
-    x4 = [[87830, 140, 17426]]
-    x5 = [[29760, 234, 5718]]
-    y1 = [[11]]
-    y2 = [[28]]
-    y3 = [[440]]
-    y4 = [[3066]]
-    y5 = [[7896]]
+    df = pd.read_csv('risk_class_'+str(k)+'.csv')
+
+    x_feat_list = ['undetected', 'hospitalized', 'quarantined']
+
+    x = df.loc[:, x_feat_list].values
+    y = df.loc[:,'total deaths'].values
 
     reg = LinearRegression()
-    reg.fit(x1, y1)
+    reg.fit(x, y)
 
     # array of the coefficients
     # parse them out
     return reg.coef_
 
-def findVaxRates(df):
-    # given a dataframe of vaccination data, figure out the rates for which people
-    # are getting vaccinated during each phase
+# death rate for undetected
+du = [findDeathRates(1)[0], findDeathRates(2)[0], findDeathRates(3)[0], findDeathRates(4)[0], findDeathRates(5)[0]]
+# death rate for hospitalized
+dh = [findDeathRates(1)[1], findDeathRates(2)[1], findDeathRates(3)[1], findDeathRates(4)[1], findDeathRates(5)[1]]
+# death rate for quarantined
+dq = [findDeathRates(1)[2], findDeathRates(2)[2], findDeathRates(3)[2], findDeathRates(4)[2], findDeathRates(5)[2]]
 
-    # find the x & y
-    x = df.loc[:, ['risk_class_1', 'risk_class_2', 'risk_class_3', 'risk_class_4', 'risk_class_5']].values.reshape(-1, 1)
-    y = df.loc[:, 'total'].values
-
-    # do regression on the given x & y values
-    reg = LinearRegression()
-    reg.fit(x, y)
-
-    # returns an array holding the coefficient which is parsed
-    return reg.coef_
+# initial data for each risk class
+# S, E, I, UD, UR, HD, HR, QD, QR, R, D
+class1 = [1274292 / 1516350, 1274292 / 1516350, 73164 / 1516350,
+          (60970/1516350) * du[0], (60970/1516350) * (1-du[0]),
+          (14/1516350) * dh[0], (14/1516350) * (1-dh[0]),
+          (12180/1516350) * (dq[0]), (12180/1516350) * (1-dq[0]),
+          (11/1516350), (95719/1516350)]
+class2 = [676765/964950, 676765/964950, 87102/964950,
+          72585/964950 * (du[1]), 72585/964950 * (1-du[1]),
+          14/964950 * (dh[1]), 14/964950 * (1-dh[1]),
+          14503/964950 * (dq[1]), 14503/964950 * (1-dq[1]),
+          28/964950, 113953/964950]
+class3 = [1278927/1723126, 1278927/1723126, 134136/1723126,
+          111780/1723126 * (du[2]),  111780/1723126 * (1-du[2]),
+          28/1723126 * (dh[2]), 28/1723126 * (1-dh[2]),
+          22328/1723126 * (dq[2]), 22328/1723126 * (1-dq[2]),
+          440/1723126, 175487/1723126]
+class4 = [1440307/1792051, 1440307/1792051, 105396/1792051,
+          87830/1792051 * (du[3]), 87830/1792051 * (1-du[3]),
+          140/1792051 * (dh[3]), 140/1792051 * (1-dh[3]),
+          17426/1792051 * (dq[3]), 17426/1792051 * (1-dq[3]),
+          3066/1792051, 137886/1792051]
+class5 = [632134/758175, 632134/758175, 35712/758175,
+          29760/758175 * (du[4]), 29760/758175 * (1-du[4]),
+          234/758175 * (dh[4]), 234/758175 * (1-dh[4]),
+          5718/758175 * (dq[4]), 5718/758175 * (1 - dq[4]),
+          7896/758175, 46721/758175]
+# 2d array that stores all risk class' data
+data = [class1, class2, class3, class4, class5]
 
 def singleDoseVaxStrat(t):
     # build the 2d array so v[k][t] is the total number of people vaccinated at time t in risk class k
     # t arrays of size 5
+    # initialize values to 0
     v = [[0 for i in range(t + 1)] for i in range(5)]
-    p = [[0 for i in range(t + 1)] for i in range(5)]
 
     # vaccination hesitancy set to 30%
     hesitancy = .3
 
-    # import the csv as a dataframe
-    phase_1_df = pd.read_csv('phase_1.csv')
-
     for time in t:
         for k in ['risk_class_1', 'risk_class_2', 'risk_class_3', 'risk_class_4', 'risk_class_5']:
             if time > 0 & time <= 42:
-                rate = findVaxRates(phase_1_df, k)
+                # rate =
                 v[k][time] = (v[k][time-1] * (1-hesitancy)) * rate
             # phase 2
             if time >= 43 & time <= 62:
-                # rate = findVaxRates(df, k)
+                # rate =
                 v[k][time] = (v[k][time - 1] * (1 - hesitancy)) * rate
             # phase 3
             if time >= 63 & time <= 76:
-                # rate = findVaxRates(df, k)
+                # rate =
                 v[k][time] = (v[k][time - 1] * (1 - hesitancy)) * rate
             # phase 4
             if time >= 77:
-                # rate = findVaxRates(df, k)
+                # rate =
                 v[k][time] = (v[k][time - 1] * (1 - hesitancy)) * rate
     return v
 
-phase_1_df = pd.read_csv('phase_1.csv')
-# x = phase_1_df.loc[:, ('risk_class_1', 'risk_class_2', 'risk_class_3', 'risk_class_4', 'risk_class_5')].values
-x = [[1274292, 676765, 1278927, 1440307, 632134]]
-y = [35618]
-#y = phase_1_df.loc[:, 'total'].values[0]
-reg = LinearRegression()
-reg.fit(x, y)
-print(reg.coef_)
+def flatVaxStrat(t):
+    v = [[0 for i in range(t + 1)] for i in range(5)]
+
+    hesitancy = .3
+    rate = .02
+
+    for time in range(1, t+1):
+        for k in [0, 1, 2, 3, 4]:
+            v[k][time] = (v[k][time - 1] * (1 - hesitancy)) * rate
+
+    return v
+
+def buildV(strat,t):
+    global v
+    v = [[0 for i in range(t + 1)] for i in range(5)]
+
+    if strat == 'flat vax':
+        v = flatVaxStrat(t)
+    if strat == 'single dose':
+        v = singleDoseVaxStrat(t)
+
+    return v
 
 def tPlusOne(k, t):
     global s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
 
     # compute ksum
     ksum = i[0][t] + i[1][t] + i[2][t] + i[3][t] + i[4][t]
-
-    # Vax strategy
-    v = [[0 for i in range(t + 1)] for i in range(5)]
-    # add new equations to support our vax strat
 
     # Susceptible people, equation 16
     Skt = s[k][t-1]
@@ -200,7 +196,7 @@ def tPlusOne(k, t):
     Mkt = m[k][t-1]
     m[k][t] = Mkt + beta*v[k][t]
 
-def populateUntilT(T):
+def populateUntilT(T, strat):
     global data, s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
 
     # populate the preliminary data
@@ -220,6 +216,8 @@ def populateUntilT(T):
     m = [[0 for i in range(T + 1)] for i in range(5)]
     v = [[0 for i in range(T + 1)] for i in range(5)]
 
+    v = buildV(strat, T)
+
     for k in range(0, 5):
         for t in range(0, T+1):
             if t == 0:
@@ -238,7 +236,7 @@ def populateUntilT(T):
             else:
                 tPlusOne(k, t)
 
-def buildDF(k, T):
+def buildDF(k, T, strat):
     global s, e, i, ud, ur, hd, hr, qd, qr, d, m
 
     # set the column names
@@ -247,7 +245,7 @@ def buildDF(k, T):
                'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'immune state']
     df = pd.DataFrame(columns=columns)
 
-    populateUntilT(T)
+    populateUntilT(T, strat)
 
     # add to dataframe risk class by risk class
     for t in range(0, T+1):
@@ -256,4 +254,4 @@ def buildDF(k, T):
     return df
 
 # build for 1 day for risk class 1
-print(buildDF(1, 1))
+print(buildDF(1, 1, 'flat vax'))
