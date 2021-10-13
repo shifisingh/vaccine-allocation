@@ -34,6 +34,10 @@ class5 = [632134/758175, 632134/758175, 35712/758175,
           5718/758175 * (dq[4]), 5718/758175 * (1 - dq[4]),
           7896/758175, 46721/758175]
 
+print('du ', du)
+print('dh ',dh)
+print('dq ', dq)
+
 # 2d array that stores all risk class' day 0 data
 data = [class1, class2, class3, class4, class5]
 
@@ -65,9 +69,9 @@ def tPlusOne(k, t):
     ur[k][t] = URkt + (rur*Ikt - rr*URkt)
 
     # Hospitalized people that die, equation 20
-    HDkt = hd[k][t-1] * (1 - rh)
-    rhd = HDkt / hd[k][t-1]
-    hd[k][t] = HDkt + (rhd*Ikt - rDeath*HDkt)
+    HDkt = hd[k][t-1] * (1 - rh) # set of people that are currently hospitalized + going to die
+    rhd = HDkt / hd[k][t-1] # rate that infected people get to a state where they are hospitalized + die
+    hd[k][t] = hd[k][t-1] + (rhd*Ikt - rDeath*hd[k][t-1])
     # Hospitalized people that recover
     HRkt = hr[k][t-1] * rh
     rhr = HRkt / hr[k][t-1]
@@ -84,7 +88,7 @@ def tPlusOne(k, t):
 
     # People that die, equation 22
     Dkt = d[k][t-1]
-    d[k][t] = (Dkt+rDeath)*(UDkt + HDkt + QDkt)
+    d[k][t] = Dkt+rDeath*(UDkt + HDkt + QDkt)
 
     # Mkt, equation 23
     Mkt = m[k][t-1]
@@ -111,7 +115,7 @@ def populateUntilT(T):
     v = [[0 for i in range(T + 1)] for i in range(5)]
 
     #v = buildV(strat, T)
-    v = buildPredictedV()
+    #v = buildPredictedV()
 
     for k in range(0, 5):
         for t in range(0, T+1):
@@ -143,7 +147,7 @@ def buildDF(k, T):
     df = pd.DataFrame(columns=columns)
 
     # populateUntilT(T)
-    buildPredictedV()
+    #buildPredictedV()
 
     # add to dataframe risk class by risk class
     for t in range(0, T+1):
@@ -152,4 +156,7 @@ def buildDF(k, T):
     return df
 
 # build for 1 day for risk class 1
-print(buildDF(1, 20).head(3))
+print(buildDF(1, 1))
+df = buildDF(1, 20)
+# specify column 1 values are integers
+df.to_excel(r'data.xlsx', index = False)

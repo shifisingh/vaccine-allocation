@@ -14,7 +14,7 @@ def findDeathRates(k):
     x = df.loc[:, x_feat_list].values
     y = df.loc[:,'total deaths'].values
 
-    reg = LinearRegression()
+    reg = LinearRegression(positive=True)
     reg.fit(x, y)
 
     # array of the coefficients
@@ -22,8 +22,11 @@ def findDeathRates(k):
     return reg.coef_
 
 # death rate for undetected
-du = [findDeathRates(0)[0], findDeathRates(1)[0], findDeathRates(2)[0], findDeathRates(3)[0], findDeathRates(4)[0]]
+du = [findDeathRates(0)[0], findDeathRates(1)[0], findDeathRates(2)[0],
+      findDeathRates(3)[0], findDeathRates(4)[0]]
 # death rate for hospitalized
-dh = [findDeathRates(0)[1], findDeathRates(1)[1], findDeathRates(2)[1], findDeathRates(3)[1], findDeathRates(4)[1]]
+dh = [findDeathRates(0)[1], findDeathRates(1)[1], findDeathRates(2)[1],
+      findDeathRates(3)[1], findDeathRates(4)[1]]
 # death rate for quarantined
-dq = [findDeathRates(0)[2], findDeathRates(1)[2], findDeathRates(2)[2], findDeathRates(3)[2], findDeathRates(4)[2]]
+dq = [findDeathRates(0)[2], findDeathRates(1)[2], findDeathRates(2)[2],
+      findDeathRates(3)[2], findDeathRates(4)[2]]
