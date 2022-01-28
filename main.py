@@ -35,8 +35,11 @@ class5 = [632134/758175, 632134/758175, 35712/758175,
           7896/758175, 46721/758175]
 
 print('du ', du)
-print('dh ',dh)
+print('dh ', dh)
 print('dq ', dq)
+
+#find iud, ihd, iqd rates
+#disagreggated rates in appendix page 26
 
 # 2d array that stores all risk class' day 0 data
 data = [class1, class2, class3, class4, class5]
@@ -45,7 +48,7 @@ def tPlusOne(k, t):
     #global s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
 
     # compute ksum
-    ksum = i[0][t] + i[1][t] + i[2][t] + i[3][t] + i[4][t]
+    ksum = i[0][t-1] + i[1][t-1] + i[2][t-1] + i[3][t-1] + i[4][t-1]
 
     # Susceptible people, equation 16
     Skt = s[k][t-1]
@@ -62,7 +65,7 @@ def tPlusOne(k, t):
     # Undiagnosed people that die, equation 19
     UDkt = ud[k][t-1] * (1 - rr)
     rud = UDkt / ud[k][t-1]
-    ud[k][t] = UDkt + (rud*Ikt - rDeath*UDkt)
+    ud[k][t] = ud[k][t-1] + (rud*Ikt - rDeath*ud[k][t-1])
     # Undiagnosed people that recover
     URkt = ud[k][t-1] * rr
     rur = URkt / ud[k][t-1]
@@ -71,6 +74,7 @@ def tPlusOne(k, t):
     # Hospitalized people that die, equation 20
     HDkt = hd[k][t-1] * (1 - rh) # set of people that are currently hospitalized + going to die
     rhd = HDkt / hd[k][t-1] # rate that infected people get to a state where they are hospitalized + die
+    # the people hospitalized yesterday + (the people that are infected - the people that die)
     hd[k][t] = hd[k][t-1] + (rhd*Ikt - rDeath*hd[k][t-1])
     # Hospitalized people that recover
     HRkt = hr[k][t-1] * rh
@@ -80,7 +84,7 @@ def tPlusOne(k, t):
     # Quarantined people that die, equation 21
     QDkt = qd[k][t-1] * (1 - rr)
     rqd = QDkt / qd[k][t-1]
-    qd[k][t] = QDkt + (rqd*Ikt - rDeath*QDkt)
+    qd[k][t] = qd[k][t-1] + (rqd*Ikt - rDeath*qd[k][t-1])
     # Quarantined people that recover
     QRkt = qr[k][t-1] * rr
     rqr = QRkt / qr[k][t-1]

@@ -7,7 +7,6 @@ v = [[]]
 # probability of getting into contact with an infected person (initialized to 0)
 ksum = 0
 # progression rate
-
 ri = .06
 # death rate, r^D
 rDeath = 0.028
