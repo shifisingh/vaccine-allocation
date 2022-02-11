@@ -16,6 +16,12 @@ rDetected = .15
 rr = .03
 # recovery rate for hospitalized
 rh = .02
+# minimum mortality rate (assume = mortality rate for now)
+mMin = .01
+# percentage of infectious cases detected
+pDetected = .20
+# percentage of detected cases hospitalized
+pHospitalized = .15
 
 # 2d array of states, state[k][t], where k represents the risk class and t represents the time
 s = [[]]

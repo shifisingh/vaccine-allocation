@@ -1,7 +1,9 @@
 import pandas as pd
 
 # import functions and variables from other files
-from variables import beta, gamma, alpha, ksum, ri, rDeath, rDetected, rr, rh, s, e, i, ud, ur, hd, hr, qd, qr, d, m
+from variables import beta, gamma, alpha, ksum, ri, rDeath, rDetected, rr, rh, s, e, i, ud, ur, hd, hr, qd, qr, d, m, \
+    mMin, pDetected, pHospitalized, rDetected
+from variables import *
 from vaccinations import v
 from vaccinations import *
 from death_rates import du, dh, dq
@@ -33,6 +35,7 @@ class5 = [632134/758175, 632134/758175, 35712/758175,
           234/758175 * (dh[4]), 234/758175 * (1-dh[4]),
           5718/758175 * (dq[4]), 5718/758175 * (1 - dq[4]),
           7896/758175, 46721/758175]
+rDetected = .15
 
 print('du ', du)
 print('dh ', dh)
@@ -58,36 +61,42 @@ def tPlusOne(k, t):
     Ekt = e[k][t-1]
     e[k][t] = Ekt + ((alpha*gamma*(Skt - beta*v[k][t]))*ksum - (ri*Ekt))
 
+    # six rates
+    rDetected = .15
+    UDkt = ud[k][t - 1] * (1 - rr)
+    rud = rDetected*mMin*(1-pDetected)
+    URkt = ud[k][t - 1] * rr
+    rur = rDetected*(1-mMin)*(1-pDetected)
+    HDkt = hd[k][t - 1] * (1 - rh)  # set of people that are currently hospitalized + going to die
+    rhd = rDetected*mMin*pDetected*pHospitalized  # rate that infected people get to a state where they are hospitalized + die
+    HRkt = hr[k][t - 1] * rh
+    rhr = rDetected*(1-mMin)*pDetected*pHospitalized
+    QDkt = qd[k][t - 1] * (1 - rr)
+    rqd = rDetected*mMin*pDetected*(1-pHospitalized)
+    QRkt = qr[k][t - 1] * rr
+    rqr = rDetected*(1-mMin)*pDetected*(1-pHospitalized)
+
+    # people no longer in the infected category for any reason
+    rDetected = rud + rur + rhd + rhr + rqd + rqr
+
     # Infected people, equation 18
     Ikt = i[k][t-1]
     i[k][t] = Ikt + (ri*Ekt - rDetected*Ikt)
 
     # Undiagnosed people that die, equation 19
-    UDkt = ud[k][t-1] * (1 - rr)
-    rud = UDkt / ud[k][t-1]
     ud[k][t] = ud[k][t-1] + (rud*Ikt - rDeath*ud[k][t-1])
     # Undiagnosed people that recover
-    URkt = ud[k][t-1] * rr
-    rur = URkt / ud[k][t-1]
     ur[k][t] = URkt + (rur*Ikt - rr*URkt)
 
     # Hospitalized people that die, equation 20
-    HDkt = hd[k][t-1] * (1 - rh) # set of people that are currently hospitalized + going to die
-    rhd = HDkt / hd[k][t-1] # rate that infected people get to a state where they are hospitalized + die
     # the people hospitalized yesterday + (the people that are infected - the people that die)
     hd[k][t] = hd[k][t-1] + (rhd*Ikt - rDeath*hd[k][t-1])
     # Hospitalized people that recover
-    HRkt = hr[k][t-1] * rh
-    rhr = HRkt / hr[k][t-1]
     hr[k][t] = HRkt + (rhr*Ikt - rr*HRkt)
 
     # Quarantined people that die, equation 21
-    QDkt = qd[k][t-1] * (1 - rr)
-    rqd = QDkt / qd[k][t-1]
     qd[k][t] = qd[k][t-1] + (rqd*Ikt - rDeath*qd[k][t-1])
     # Quarantined people that recover
-    QRkt = qr[k][t-1] * rr
-    rqr = QRkt / qr[k][t-1]
     qr[k][t] = QRkt + (rqr*Ikt - rr*QRkt)
 
     # People that die, equation 22
