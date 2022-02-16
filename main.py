@@ -1,10 +1,7 @@
 import pandas as pd
 
 # import functions and variables from other files
-from variables import beta, gamma, alpha, ksum, ri, rDeath, rDetected, rr, rh, s, e, i, ud, ur, hd, hr, qd, qr, d, m, \
-    mMin, pDetected, pHospitalized, rDetected
 from variables import *
-from vaccinations import v
 from vaccinations import *
 from death_rates import du, dh, dq
 
@@ -14,28 +11,27 @@ class1 = [1274292 / 1516350, 1274292 / 1516350, 73164 / 1516350,
           (60970/1516350) * du[0], (60970/1516350) * (1-du[0]),
           (14/1516350) * dh[0], (14/1516350) * (1-dh[0]),
           (12180/1516350) * (dq[0]), (12180/1516350) * (1-dq[0]),
-          (11/1516350), (95719/1516350)]
+          (95719/1516350), (11/1516350)]
 class2 = [676765/964950, 676765/964950, 87102/964950,
           72585/964950 * (du[1]), 72585/964950 * (1-du[1]),
           14/964950 * (dh[1]), 14/964950 * (1-dh[1]),
           14503/964950 * (dq[1]), 14503/964950 * (1-dq[1]),
-          28/964950, 113953/964950]
+          113953/964950, 28/964950]
 class3 = [1278927/1723126, 1278927/1723126, 134136/1723126,
           111780/1723126 * (du[2]),  111780/1723126 * (1-du[2]),
           28/1723126 * (dh[2]), 28/1723126 * (1-dh[2]),
           22328/1723126 * (dq[2]), 22328/1723126 * (1-dq[2]),
-          440/1723126, 175487/1723126]
+          175487/1723126, 440/1723126]
 class4 = [1440307/1792051, 1440307/1792051, 105396/1792051,
           87830/1792051 * (du[3]), 87830/1792051 * (1-du[3]),
           140/1792051 * (dh[3]), 140/1792051 * (1-dh[3]),
           17426/1792051 * (dq[3]), 17426/1792051 * (1-dq[3]),
-          3066/1792051, 137886/1792051]
+          137886/1792051, 3066/1792051]
 class5 = [632134/758175, 632134/758175, 35712/758175,
           29760/758175 * (du[4]), 29760/758175 * (1-du[4]),
           234/758175 * (dh[4]), 234/758175 * (1-dh[4]),
           5718/758175 * (dq[4]), 5718/758175 * (1 - dq[4]),
-          7896/758175, 46721/758175]
-rDetected = .15
+          46721/758175, 7896/758175]
 
 print('du ', du)
 print('dh ', dh)
@@ -48,7 +44,7 @@ print('dq ', dq)
 data = [class1, class2, class3, class4, class5]
 
 def tPlusOne(k, t):
-    #global s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
+    #global s, e, i, ud, ur, hd, hr, qd, qr, d, r, m, v
 
     # compute ksum
     ksum = i[0][t-1] + i[1][t-1] + i[2][t-1] + i[3][t-1] + i[4][t-1]
@@ -103,12 +99,15 @@ def tPlusOne(k, t):
     Dkt = d[k][t-1]
     d[k][t] = Dkt+rDeath*(UDkt + HDkt + QDkt)
 
+    # People that recover, equation 13
+    r[k][t] = rr*(ur[k][t]+qr[k][t])+rh*hr[k][t]
+
     # Mkt, equation 23
     Mkt = m[k][t-1]
     m[k][t] = Mkt + beta*v[k][t]
 
 def populateUntilT(T):
-    global data, s, e, i, ud, ur, hd, hr, qd, qr, d, m, v
+    global data, s, e, i, ud, ur, hd, hr, qd, qr, d, r, m, v
 
     # populate the preliminary data
     # note: initializing instead of setting to size variable b/c all 2d arrays were set to each other
@@ -123,6 +122,7 @@ def populateUntilT(T):
     hr = [[0 for i in range(T + 1)] for i in range(5)]
     qd = [[0 for i in range(T + 1)] for i in range(5)]
     qr = [[0 for i in range(T + 1)] for i in range(5)]
+    r = [[0 for i in range(T + 1)] for i in range(5)]
     d = [[0 for i in range(T + 1)] for i in range(5)]
     m = [[0 for i in range(T + 1)] for i in range(5)]
     v = [[0 for i in range(T + 1)] for i in range(5)]
@@ -142,21 +142,21 @@ def populateUntilT(T):
                 hr[k][0] = data[k][6]
                 qd[k][0] = data[k][7]
                 qr[k][0] = data[k][8]
-                #r[k][0] = data[k][6]
+                r[k][0] = data[k][9]
                 d[k][0] = data[k][10]
                 m[k][0] = 0
             else:
                 tPlusOne(k, t)
 
 def buildDF(k, T):
-    global s, e, i, ud, ur, hd, hr, qd, qr, d, m
+    global s, e, i, ud, ur, hd, hr, qd, qr, d, r, m
 
     populateUntilT(T)
 
     # set the column names
-    # S, R, I, UD, UR, HD, HR, QD, QR, D, M
-    columns = ['time since day 0', 'susceptible', 'infected',
-               'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'immune state']
+    # S, E, I, UD, UR, HD, HR, QD, QR, D, R, M, sum
+    columns = ['time since day 0', 'susceptible','exposed', 'infected',
+               'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'recovered', 'immune state', 'sum']
     df = pd.DataFrame(columns=columns)
 
     # populateUntilT(T)
@@ -164,8 +164,9 @@ def buildDF(k, T):
 
     # add to dataframe risk class by risk class
     for t in range(0, T+1):
-        df.loc[t] = [t, s[k][t], i[k][t], ud[k][t], ur[k][t], hd[k][t], hr[k][t],
-                     qd[k][t], qr[k][t], d[k][t], m[k][t]]
+        sum = (s[k][t]+e[k][t]+i[k][t]+ud[k][t]+ur[k][t]+hd[k][t]+hr[k][t]+qd[k][t]+qr[k][t]+d[k][t]+r[k][t]+m[k][t])
+        df.loc[t] = [t, s[k][t], e[k][t], i[k][t], ud[k][t], ur[k][t], hd[k][t], hr[k][t],
+                     qd[k][t], qr[k][t], d[k][t], r[k][t], m[k][t], sum]
     return df
 
 # build for 1 day for risk class 1
