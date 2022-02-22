@@ -4,6 +4,9 @@ you give starting parameters and a time for prediction, and the populateUntilT f
 paper that this is based on : https://www.medrxiv.org/content/10.1101/2020.11.17.20233213v1.full
 
 ### Data References
+Raw Historical Data
+https://docs.google.com/spreadsheets/d/1J8IYQ8xkOT7k98vOWUruJmctgPAc8ZIZ/edit#gid=1127812055
+
 Initial class values:
 - https://docs.google.com/presentation/d/1TbY1qXgweGtDtkhLo03vzwuD1gjDGZiLXO2bb63LfOU/edit#slide=id.gc5ebade372_0_11
 
