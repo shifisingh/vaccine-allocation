@@ -1,3 +1,10 @@
+# population counts
+class1population = 1516350
+class2population = 964950
+class3population = 1723126
+class4population = 1792051
+class5population = 758175
+population = class1population + class2population + class3population + class4population + class5population
 # for a risk class k, this may need to become a class
 beta = .95 # vaccine efficacy
 gamma = .5 # government intervention

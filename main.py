@@ -7,31 +7,31 @@ from death_rates import du, dh, dq
 
 # initial data for each risk class
 # S, E, I, UD, UR, HD, HR, QD, QR, R, D
-class1 = [1274292 / 1516350, 1274292 / 1516350, 73164 / 1516350,
-          (60970/1516350) * du[0], (60970/1516350) * (1-du[0]),
-          (14/1516350) * dh[0], (14/1516350) * (1-dh[0]),
-          (12180/1516350) * (dq[0]), (12180/1516350) * (1-dq[0]),
-          (95719/1516350), (11/1516350)]
-class2 = [676765/964950, 676765/964950, 87102/964950,
-          72585/964950 * (du[1]), 72585/964950 * (1-du[1]),
-          14/964950 * (dh[1]), 14/964950 * (1-dh[1]),
-          14503/964950 * (dq[1]), 14503/964950 * (1-dq[1]),
-          113953/964950, 28/964950]
-class3 = [1278927/1723126, 1278927/1723126, 134136/1723126,
-          111780/1723126 * (du[2]),  111780/1723126 * (1-du[2]),
-          28/1723126 * (dh[2]), 28/1723126 * (1-dh[2]),
-          22328/1723126 * (dq[2]), 22328/1723126 * (1-dq[2]),
-          175487/1723126, 440/1723126]
-class4 = [1440307/1792051, 1440307/1792051, 105396/1792051,
-          87830/1792051 * (du[3]), 87830/1792051 * (1-du[3]),
-          140/1792051 * (dh[3]), 140/1792051 * (1-dh[3]),
-          17426/1792051 * (dq[3]), 17426/1792051 * (1-dq[3]),
-          137886/1792051, 3066/1792051]
-class5 = [632134/758175, 632134/758175, 35712/758175,
-          29760/758175 * (du[4]), 29760/758175 * (1-du[4]),
-          234/758175 * (dh[4]), 234/758175 * (1-dh[4]),
-          5718/758175 * (dq[4]), 5718/758175 * (1 - dq[4]),
-          46721/758175, 7896/758175]
+class1 = [1274292 / population, 1274292 / population, 73164 / population,
+          (60970/population) * du[0], (60970/population) * (1-du[0]),
+          (14/population) * dh[0], (14/population) * (1-dh[0]),
+          (12180/population) * (dq[0]), (12180/population) * (1-dq[0]),
+          (95719/population), (11/population)]
+class2 = [676765/population, 676765/population, 87102/population,
+          72585/population * (du[1]), 72585/population * (1-du[1]),
+          14/population * (dh[1]), 14/population * (1-dh[1]),
+          14503/population * (dq[1]), 14503/population * (1-dq[1]),
+          113953/population, 28/population]
+class3 = [1278927/population, 1278927/population, 134136/population,
+          111780/population * (du[2]),  111780/population * (1-du[2]),
+          28/population * (dh[2]), 28/population * (1-dh[2]),
+          22328/population * (dq[2]), 22328/population * (1-dq[2]),
+          175487/population, 440/population]
+class4 = [1440307/population, 1440307/population, 105396/population,
+          87830/population * (du[3]), 87830/population * (1-du[3]),
+          140/population * (dh[3]), 140/population * (1-dh[3]),
+          17426/population * (dq[3]), 17426/population * (1-dq[3]),
+          137886/population, 3066/population]
+class5 = [632134/population, 632134/population, 35712/population,
+          29760/population * (du[4]), 29760/population * (1-du[4]),
+          234/population * (dh[4]), 234/population * (1-dh[4]),
+          5718/population * (dq[4]), 5718/population * (1 - dq[4]),
+          46721/population, 7896/population]
 
 print('du ', du)
 print('dh ', dh)

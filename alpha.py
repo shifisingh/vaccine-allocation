@@ -1,7 +1,23 @@
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-from variables import gamma
+from variables import *
 
+# summation equation adding up all infected cases across all age groups on a particular week
+def summation(time):
+    df0 = pd.read_csv('risk_class_0.csv')
+    df1 = pd.read_csv('risk_class_1.csv')
+    df2 = pd.read_csv('risk_class_2.csv')
+    df3 = pd.read_csv('risk_class_3.csv')
+    df4 = pd.read_csv('risk_class_4.csv')
+
+    infected = (df0.loc[:, 'active cases'][time] + df0.loc[:, 'undetected'][time]) \
+                   + (df1.loc[:, 'active cases'][time] + df1.loc[:, 'undetected'][time]) \
+                   + (df2.loc[:, 'active cases'][time] + df2.loc[:, 'undetected'][time]) \
+                   + (df3.loc[:, 'active cases'][time] + df3.loc[:, 'undetected'][time]) \
+                   + (df4.loc[:, 'active cases'][time] + df4.loc[:, 'undetected'][time])
+    infected_sum = infected/population
+
+    return infected_sum
 
 def findAlpha(k, t):
     # for each class
@@ -11,18 +27,27 @@ def findAlpha(k, t):
     # incubation period is 7 days
 
     df = pd.read_csv('risk_class_' + str(k) + '.csv')
+    infected_sum = summation(t)
 
     x = [0 for i in range(t)]
     y = [0 for i in range(t)]
 
-    print((df.loc[:, 'active cases']))
-
     for time in range(0, t):
-        x[time] = [gamma * df.loc[:, 'suceptible'][time] * (df.loc[:, 'active cases'][time]
-                                                            + df.loc[:, 'undetected'][time])]
+        suceptible = df.loc[:, 'suceptible'][time]
+        x[time] = [gamma * (suceptible/population) * infected_sum]
 
-    for time in range(0, t - 1):
-        y[time] = df.loc[:, 'suceptible'].values[time + 1] - df.loc[:, 'suceptible'].values[time]
+    # fill out first value
+    # q for prof: y is a list of differences so len(x) = len(y) + 1
+    # -> should we tack on a default val at the end or beg of y?
+    y[0] = 0
+
+    for time in range(1, t - 1):
+        prev_suceptible = df.loc[:, 'suceptible'].values[time]
+        current_suceptible = df.loc[:, 'suceptible'].values[time + 1]
+        y[time] = prev_suceptible/population - current_suceptible/population
+
+    print(x)
+    print(y)
 
     reg = LinearRegression(positive=True)
     reg.fit(x, y)
@@ -31,6 +56,5 @@ def findAlpha(k, t):
     # parse them out
     return reg.coef_
 
-.0000083728
-alpha = findAlpha(1, 2)
+alpha = findAlpha(4, 7)
 print(alpha)
