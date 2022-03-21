@@ -11,11 +11,11 @@ def summation(time):
     df4 = pd.read_csv('risk_class_4.csv')
 
     infected = (df0.loc[:, 'active cases'][time] + df0.loc[:, 'undetected'][time]) \
-                   + (df1.loc[:, 'active cases'][time] + df1.loc[:, 'undetected'][time]) \
-                   + (df2.loc[:, 'active cases'][time] + df2.loc[:, 'undetected'][time]) \
-                   + (df3.loc[:, 'active cases'][time] + df3.loc[:, 'undetected'][time]) \
-                   + (df4.loc[:, 'active cases'][time] + df4.loc[:, 'undetected'][time])
-    infected_sum = infected/population
+               + (df1.loc[:, 'active cases'][time] + df1.loc[:, 'undetected'][time]) \
+               + (df2.loc[:, 'active cases'][time] + df2.loc[:, 'undetected'][time]) \
+               + (df3.loc[:, 'active cases'][time] + df3.loc[:, 'undetected'][time]) \
+               + (df4.loc[:, 'active cases'][time] + df4.loc[:, 'undetected'][time])
+    infected_sum = infected / population
 
     return infected_sum
 
@@ -34,20 +34,21 @@ def findAlpha(k, t):
 
     for time in range(0, t):
         suceptible = df.loc[:, 'suceptible'][time]
-        x[time] = [gamma * (suceptible/population) * infected_sum]
+        x[time] = [gamma * (suceptible / population) * infected_sum]
 
     # fill out first value
     # q for prof: y is a list of differences so len(x) = len(y) + 1
     # -> should we tack on a default val at the end or beg of y?
     y[0] = 0
 
+    # start at week 2 to week t-1 (non inclusive)
     for time in range(1, t - 1):
-        prev_suceptible = df.loc[:, 'suceptible'].values[time]
-        current_suceptible = df.loc[:, 'suceptible'].values[time + 1]
-        y[time] = prev_suceptible/population - current_suceptible/population
+        prev_suceptible = df.loc[:, 'suceptible'].values[time - 1]
+        current_suceptible = df.loc[:, 'suceptible'].values[time]
+        y[time] = prev_suceptible / population - current_suceptible / population
 
-    print(x)
-    print(y)
+    print(len(x))
+    print(len(y))
 
     reg = LinearRegression(positive=True)
     reg.fit(x, y)
@@ -56,5 +57,6 @@ def findAlpha(k, t):
     # parse them out
     return reg.coef_
 
-alpha = findAlpha(4, 7)
+# nominal infection rate over all 15 weeks for risk class 4
+alpha = findAlpha(2, 15)
 print(alpha)
