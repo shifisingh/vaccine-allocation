@@ -33,6 +33,7 @@ def findAlpha(k, t):
     y = [0 for i in range(t)]
 
     for time in range(0, t):
+        infected_sum = summation(t)
         suceptible = df.loc[:, 'suceptible'][time]
         x[time] = [gamma * (suceptible / population) * infected_sum]
 
@@ -42,13 +43,13 @@ def findAlpha(k, t):
     y[0] = 0
 
     # start at week 2 to week t-1 (non inclusive)
-    for time in range(1, t - 1):
+    for time in range(1, t):
         prev_suceptible = df.loc[:, 'suceptible'].values[time - 1]
         current_suceptible = df.loc[:, 'suceptible'].values[time]
         y[time] = prev_suceptible / population - current_suceptible / population
 
-    print(len(x))
-    print(len(y))
+    print(x)
+    print(y)
 
     reg = LinearRegression(positive=True)
     reg.fit(x, y)
@@ -58,5 +59,5 @@ def findAlpha(k, t):
     return reg.coef_
 
 # nominal infection rate over all 15 weeks for risk class 4
-alpha = findAlpha(2, 15)
+alpha = findAlpha(4, 15)
 print(alpha)

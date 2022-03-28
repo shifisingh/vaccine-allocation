@@ -10,7 +10,7 @@ https://docs.google.com/spreadsheets/d/1J8IYQ8xkOT7k98vOWUruJmctgPAc8ZIZ/edit#gi
 Initial class values:
 - https://docs.google.com/presentation/d/1TbY1qXgweGtDtkhLo03vzwuD1gjDGZiLXO2bb63LfOU/edit#slide=id.gc5ebade372_0_11
 
-Risk class info for calculating death rates/vaccination 
+Risk class info for calculating death rates/nominal infection rate/vaccination
 - https://docs.google.com/spreadsheets/d/1wTsipggtfNr_dDOqcH3BWIASQkVQGeLcpxEDH8S3Dg4/edit#gid=0
 
 Vaccination Strategy (number of vax per age group per phase)
