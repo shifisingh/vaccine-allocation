@@ -1,6 +1,9 @@
+import math
+
 import pandas as pd
 
 # import functions and variables from other files
+from alpha import findAlpha
 from variables import *
 from vaccinations import *
 from death_rates import du, dh, dq
@@ -45,17 +48,18 @@ data = [class1, class2, class3, class4, class5]
 
 def tPlusOne(k, t):
     #global s, e, i, ud, ur, hd, hr, qd, qr, d, r, m, v
+    alpha = findAlpha(k, 0, math.ceil(t/7))  # nominal infection rate
 
     # compute ksum
     ksum = i[0][t-1] + i[1][t-1] + i[2][t-1] + i[3][t-1] + i[4][t-1]
 
     # Susceptible people, equation 16
-    Skt = s[k][t-1]
-    s[k][t] = Skt - beta*v[k][t] - ((alpha*gamma)*(Skt - beta*v[k][t])*ksum)
+    Skt = s[k][t-1] - v[k][t-1]
+    s[k][t] = Skt - beta*v[k][t] - ((alpha[0]*gamma)*(Skt - beta*v[k][t])*ksum)
 
     # Exposed people, equation 17
     Ekt = e[k][t-1]
-    e[k][t] = Ekt + ((alpha*gamma*(Skt - beta*v[k][t]))*ksum - (ri*Ekt))
+    e[k][t] = Ekt + ((alpha[0]*gamma*(Skt - beta*v[k][t]))*ksum - (ri*Ekt))
 
     # six rates
     rDetected = .15
@@ -102,6 +106,11 @@ def tPlusOne(k, t):
     # People that recover, equation 13
     r[k][t] = rr*(ur[k][t]+qr[k][t])+rh*hr[k][t]
 
+    # Vaccinated people
+    Vkt = v[k][t - 1]
+    vaxRate = s[k][t]*.01
+    v[k][t] = Vkt + vaxRate
+
     # Mkt, equation 23
     Mkt = m[k][t-1]
     m[k][t] = Mkt + beta*v[k][t]
@@ -145,18 +154,19 @@ def populateUntilT(T):
                 r[k][0] = data[k][9]
                 d[k][0] = data[k][10]
                 m[k][0] = 0
+                v[k][0]
             else:
                 tPlusOne(k, t)
 
 def buildDF(k, T):
-    global s, e, i, ud, ur, hd, hr, qd, qr, d, r, m
+    global s, e, i, ud, ur, hd, hr, qd, qr, d, r, m, v
 
     populateUntilT(T)
 
     # set the column names
     # S, E, I, UD, UR, HD, HR, QD, QR, D, R, M, sum
     columns = ['time since day 0', 'susceptible','exposed', 'infected',
-               'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'recovered', 'immune state', 'sum']
+               'UD', 'UR', 'HD', 'HR', 'QD', 'QR', 'died', 'recovered', 'immune state', 'vaccinated', 'sum']
     df = pd.DataFrame(columns=columns)
 
     # populateUntilT(T)
@@ -166,11 +176,10 @@ def buildDF(k, T):
     for t in range(0, T+1):
         sum = (s[k][t]+e[k][t]+i[k][t]+ud[k][t]+ur[k][t]+hd[k][t]+hr[k][t]+qd[k][t]+qr[k][t]+d[k][t]+r[k][t]+m[k][t])
         df.loc[t] = [t, s[k][t], e[k][t], i[k][t], ud[k][t], ur[k][t], hd[k][t], hr[k][t],
-                     qd[k][t], qr[k][t], d[k][t], r[k][t], m[k][t], sum]
+                     qd[k][t], qr[k][t], d[k][t], r[k][t], m[k][t], v[k][t], sum]
     return df
 
 # build for 1 day for risk class 1
-print(buildDF(1, 1))
 df = buildDF(1, 20)
 # specify column 1 values are integers
 df.to_excel(r'data.xlsx', index = False)

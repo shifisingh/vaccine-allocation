@@ -8,7 +8,7 @@ population = class1population + class2population + class3population + class4popu
 # for a risk class k, this may need to become a class
 beta = .95 # vaccine efficacy
 gamma = .5 # government intervention
-alpha = .83 # nominal infection rate
+# alpha = .83 # nominal infection rate
 # 2d array of number of vaccinations, vaccinated[k][t], where k represents the risk class and t represents the time
 v = [[]]
 # probability of getting into contact with an infected person (initialized to 0)

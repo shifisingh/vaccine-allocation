@@ -4,7 +4,7 @@ import pandas as pd
 
 v = [[]]
 
-# STRATEGY 1
+# FILL BASED ON HISTORICAL DATA
 # Populate vaccinations for a flat vax rate
 def populateVaxByWeek(week):
     global v
@@ -13,8 +13,10 @@ def populateVaxByWeek(week):
         df = pd.read_csv('risk_class_' + str(k) + '.csv')
         # for week 1, start at day 7 end before day 15
         for i in range((week*7)+1, (week*7)+8):
+            # the proportion of vaccinated people
             rate = (df['vaccinated'][week * 7])/(df['suceptible'][week * 7])
             v[k][i] = v[k][i-1] * (1+rate)
+
 
 def singleDoseVaxStrat(t):
     global v
@@ -27,7 +29,8 @@ def singleDoseVaxStrat(t):
     # for every risk class
     for k in [0, 1, 2, 3, 4]:
         df = pd.read_csv('risk_class_' + str(k) + '.csv')
-        rate = (df['vaccinated'][70])/(df['suceptible'][70])
+        rate = (df['vaccinated'][10])/(df['suceptible'][10])
+        # loop over days now
         for time in range(71, t):
             v[k][time] = (v[k][time-1] * (1-hesitancy)) * (1+rate)
     return v
@@ -86,4 +89,7 @@ def buildPredictedV():
     #print(v[0])
     #print(len(v[0]))
 
-buildPredictedV()
+# buildPredictedV()
+
+# NEW VAX STRATS
+# fixed number of vaccines per week

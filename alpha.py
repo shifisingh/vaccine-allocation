@@ -19,37 +19,37 @@ def summation(time):
 
     return infected_sum
 
-def findAlpha(k, t):
+def findAlpha(k, start, end):
     # for each class
     # y = [[Δs for each t]...]
-    # which will be an array of size t-1 of arrays of size 1 because start on week 2 (calculating change)
+    # which will be an array of size t-1 of arrays of size 1 because start on week after start (calculating change)
     # x = alpha * gamma * s[t] * i[t]
     # incubation period is 7 days
 
     df = pd.read_csv('risk_class_' + str(k) + '.csv')
-    infected_sum = summation(t)
 
-    x = [0 for i in range(t)]
-    y = [0 for i in range(t)]
+    x = []
+    y = []
 
-    for time in range(0, t):
-        infected_sum = summation(t)
+    for time in range(start, end):
+        infected_sum = summation(time)
+        # print(infected_sum)
         suceptible = df.loc[:, 'suceptible'][time]
-        x[time] = [gamma * (suceptible / population) * infected_sum]
+        x.append([gamma * (suceptible / population) * infected_sum])
+
+    # start at the week after start to end (non inclusive)
+    for time in range(start + 1, end):
+        prev_suceptible = df.loc[:, 'suceptible'].values[time - 1]
+        current_suceptible = df.loc[:, 'suceptible'].values[time]
+        y.append(prev_suceptible / population - current_suceptible / population)
 
     # fill out first value
     # q for prof: y is a list of differences so len(x) = len(y) + 1
     # -> should we tack on a default val at the end or beg of y?
-    y[0] = 0
+    y.append(0)
 
-    # start at week 2 to week t-1 (non inclusive)
-    for time in range(1, t):
-        prev_suceptible = df.loc[:, 'suceptible'].values[time - 1]
-        current_suceptible = df.loc[:, 'suceptible'].values[time]
-        y[time] = prev_suceptible / population - current_suceptible / population
-
-    print(x)
-    print(y)
+    # print(x)
+    # print(y)
 
     reg = LinearRegression(positive=True)
     reg.fit(x, y)
@@ -59,5 +59,5 @@ def findAlpha(k, t):
     return reg.coef_
 
 # nominal infection rate over all 15 weeks for risk class 4
-alpha = findAlpha(4, 15)
-print(alpha)
+alpha = findAlpha(4, 9, 15)
+# print(alpha)
