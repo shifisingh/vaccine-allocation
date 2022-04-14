@@ -47,28 +47,29 @@ print('dq ', dq)
 data = [class1, class2, class3, class4, class5]
 
 def tPlusOne(k, t):
-    #global s, e, i, ud, ur, hd, hr, qd, qr, d, r, m, v
     alpha = findAlpha(k, 0, math.ceil(t/7))  # nominal infection rate
 
     # compute ksum
     ksum = i[0][t-1] + i[1][t-1] + i[2][t-1] + i[3][t-1] + i[4][t-1]
 
-    # Susceptible people, equation 16
+    # Susceptible state
     Skt = s[k][t-1] - v[k][t-1]
     s[k][t] = Skt - beta*v[k][t] - ((alpha[0]*gamma)*(Skt - beta*v[k][t])*ksum)
 
-    # Exposed people, equation 17
+    # Exposed state
     Ekt = e[k][t-1]
     e[k][t] = Ekt + ((alpha[0]*gamma*(Skt - beta*v[k][t]))*ksum - (ri*Ekt))
 
-    # six rates
+    # Detection Rate
     rDetected = .15
+    # Undetected state
     UDkt = ud[k][t - 1] * (1 - rr)
     rud = rDetected*mMin*(1-pDetected)
     URkt = ud[k][t - 1] * rr
     rur = rDetected*(1-mMin)*(1-pDetected)
+    # Hospitalized state
     HDkt = hd[k][t - 1] * (1 - rh)  # set of people that are currently hospitalized + going to die
-    rhd = rDetected*mMin*pDetected*pHospitalized  # rate that infected people get to a state where they are hospitalized + die
+    rhd = rDetected*mMin*pDetected*pHospitalized  # rate that infected people get to a state where hospitalized + die
     HRkt = hr[k][t - 1] * rh
     rhr = rDetected*(1-mMin)*pDetected*pHospitalized
     QDkt = qd[k][t - 1] * (1 - rr)
@@ -79,7 +80,7 @@ def tPlusOne(k, t):
     # people no longer in the infected category for any reason
     rDetected = rud + rur + rhd + rhr + rqd + rqr
 
-    # Infected people, equation 18
+    # Infected people
     Ikt = i[k][t-1]
     i[k][t] = Ikt + (ri*Ekt - rDetected*Ikt)
 
@@ -108,7 +109,7 @@ def tPlusOne(k, t):
 
     # Vaccinated people
     Vkt = v[k][t - 1]
-    vaxRate = s[k][t]*.01
+    vaxRate = s[k][t]*.002
     v[k][t] = Vkt + vaxRate
 
     # Mkt, equation 23
